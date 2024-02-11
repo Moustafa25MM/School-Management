@@ -1,9 +1,12 @@
+const path = require('path');
 require('dotenv').config({
   path: path.resolve(__dirname, './envs/.env'),
 });
+
 const os = require('os');
 const pjson = require('../package.json');
 const utils = require('../libs/utils');
+
 const SERVICE_NAME = process.env.SERVICE_NAME
   ? utils.slugify(process.env.SERVICE_NAME)
   : pjson.name;
