@@ -15,6 +15,7 @@ const TimeMachine = require('../managers/time_machine/TimeMachine.manager');
 
 const MongoLoader = require('./MongoLoader');
 const User = require('../managers/entities/user/User.manager');
+const Auth = require('../managers/entities/auth/Auth.manager');
 
 /**
  * load sharable modules
@@ -66,6 +67,7 @@ module.exports = class ManagersLoader {
     this.managers.shark = new SharkFin({ ...this.injectable, layers, actions });
     this.managers.timeMachine = new TimeMachine(this.injectable);
     this.managers.token = new TokenManager(this.injectable);
+    this.managers.auth = new Auth(this.injectable);
     this.managers.user = new User(this.injectable);
     /*************************************************************************************************/
     this.managers.mwsExec = new VirtualStack({

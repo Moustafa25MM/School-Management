@@ -1,46 +1,45 @@
+const Roles = require('./user.mongoModel');
 module.exports = {
   createUser: [
     {
-      model: 'User',
-      fields: [
-        {
-          name: 'username',
-          type: 'String',
-          required: true,
-          unique: true,
-        },
-        {
-          name: 'email',
-          type: 'String',
-          required: true,
-          unique: true,
-        },
-        {
-          name: 'password',
-          type: 'String',
-          required: true,
-        },
-        {
-          name: 'role',
-          type: 'String',
-          enum: Roles,
-          default: Roles.Student,
-        },
-        {
-          name: 'school',
-          type: 'ObjectId',
-          ref: 'School',
-          conditionalRequired: true,
-          condition: (user) => user.role === Roles.SchoolAdmin,
-        },
-        {
-          name: 'classroom',
-          type: 'ObjectId',
-          ref: 'Classroom',
-          conditionalRequired: true,
-          condition: (user) => user.role === Roles.Student,
-        },
-      ],
+      label: 'Username',
+      model: 'username',
+      type: 'String',
+      required: true,
+      unique: true,
+    },
+    {
+      label: 'Email',
+      model: 'email',
+      type: 'String',
+      required: true,
+      unique: true,
+    },
+    {
+      label: 'Password',
+      model: 'password',
+      type: 'String',
+      required: true,
+    },
+    {
+      label: 'Role',
+      type: 'String',
+      enum: Roles,
+      default: Roles.Student,
+    },
+    {
+      label: 'School',
+      type: 'ObjectId',
+      ref: 'School',
+      conditionalRequired: true,
+      condition: (user) => user.role === Roles.SchoolAdmin,
+    },
+    {
+      label: 'Classroom',
+      type: 'ObjectId',
+      ref: 'Classroom',
+      conditionalRequired: true,
+      condition: (user) => user.role === Roles.Student,
     },
   ],
 };
