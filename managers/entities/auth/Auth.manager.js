@@ -16,7 +16,7 @@ module.exports = class Auth {
     this.mongomodels = mongomodels;
     this.tokenManager = managers.token;
     this.usersCollection = 'auth';
-    this.httpExposed = ['post=signupAdmin'];
+    this.httpExposed = ['post=signupAdmin', 'post=login'];
   }
 
   async signupAdmin({ username, email, password }) {
@@ -42,5 +42,32 @@ module.exports = class Auth {
     let newUser = await this.mongomodels.user.create(userInfo);
 
     return { newUser };
+  }
+
+  async login({ email, password }) {
+    let user = await this.mongomodels.user
+      .findOne({ email })
+      .select('+password');
+    if (!user) {
+      throw new Error('User Not Found');
+    }
+
+    let passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      throw new Error('Invalid email or password');
+    }
+
+    const access_token = this.tokenManager.genLongToken({
+      userId: user._id,
+      userKey: {
+        email: user.email,
+        role: user.role,
+      },
+    });
+
+    user.password = undefined;
+
+    return { user, access_token };
   }
 };
