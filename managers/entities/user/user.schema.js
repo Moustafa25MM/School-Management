@@ -12,7 +12,7 @@ module.exports = {
       label: 'Email',
       model: 'email',
       type: 'String',
-      required: true,
+      required: false,
       unique: true,
     },
     {
