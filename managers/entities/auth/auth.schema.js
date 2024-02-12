@@ -1,19 +1,19 @@
 module.exports = {
   signUp: [
     {
-      label: 'username',
+      label: 'Username',
       model: 'username',
       type: 'string',
       required: true,
     },
     {
-      label: 'email',
+      label: 'Email',
       model: 'email',
       type: 'string',
       required: false,
     },
     {
-      label: 'password',
+      label: 'Password',
       model: 'password',
       type: 'string',
       required: true,

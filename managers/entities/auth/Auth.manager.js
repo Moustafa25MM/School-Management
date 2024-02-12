@@ -30,11 +30,32 @@ module.exports = class Auth {
     let validationResult = await this.validators.auth.signUp(userInfo);
     if (validationResult) return validationResult;
 
-    const userExists = await this.mongomodels.user.findOne({
-      $or: [{ username }, { email }],
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'Invalid email format. Please provide a valid email address.',
+      };
+    }
+    const userExistsWithUsername = await this.mongomodels.user.findOne({
+      username,
     });
-    if (userExists) {
-      throw new Error('User already exists');
+    if (userExistsWithUsername) {
+      return {
+        ok: false,
+        code: 409,
+        errors: 'Username is already taken.',
+      };
+    }
+
+    const userExistsWithEmail = await this.mongomodels.user.findOne({ email });
+    if (userExistsWithEmail) {
+      return {
+        ok: false,
+        code: 409,
+        errors: 'Email is already registered.',
+      };
     }
 
     userInfo.password = await bcrypt.hash(password, 12);
@@ -49,13 +70,21 @@ module.exports = class Auth {
       .findOne({ email })
       .select('+password');
     if (!user) {
-      throw new Error('User Not Found');
+      return {
+        ok: false,
+        code: 404,
+        errors: 'User Not Found.',
+      };
     }
 
     let passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
-      throw new Error('Invalid email or password');
+      return {
+        ok: false,
+        code: 401,
+        errors: 'Invalid Email or Password.',
+      };
     }
 
     const access_token = this.tokenManager.genLongToken({
