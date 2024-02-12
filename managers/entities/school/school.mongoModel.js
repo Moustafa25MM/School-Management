@@ -11,7 +11,7 @@ const schoolSchema = new Schema({
     type: String,
     required: true,
   },
-  admin: {
+  administrator: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: false,

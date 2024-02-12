@@ -57,20 +57,46 @@ module.exports = class User {
     }
 
     // Role-based field requirement checks
-    if (role === 'school_admin' && !school) {
-      return {
-        ok: false,
-        code: 400,
-        errors: 'Missing school ID for school admin creation.',
-      };
+    if (role === 'school_admin') {
+      if (!school) {
+        return {
+          ok: false,
+          code: 400,
+          errors: 'Missing school ID for school admin creation.',
+        };
+      } else {
+        // Check if the school exists
+        const schoolExists = await this.mongomodels.school.findById(school);
+        if (!schoolExists) {
+          return {
+            ok: false,
+            code: 404,
+            errors: 'School does not exist.',
+          };
+        }
+      }
     }
 
-    if (role === 'student' && !classroom) {
-      return {
-        ok: false,
-        code: 400,
-        errors: 'Missing classroom ID for student creation.',
-      };
+    if (role === 'student') {
+      if (!classroom) {
+        return {
+          ok: false,
+          code: 400,
+          errors: 'Missing classroom ID for student creation.',
+        };
+      } else {
+        // Check if the classroom exists
+        // const classroomExists = await this.mongomodels.classroom.findById(
+        //   classroom
+        // );
+        if (!classroom) {
+          return {
+            ok: false,
+            code: 404,
+            errors: 'Classroom does not exist.',
+          };
+        }
+      }
     }
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
