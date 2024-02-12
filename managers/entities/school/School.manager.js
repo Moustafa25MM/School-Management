@@ -16,7 +16,7 @@ module.exports = class School {
     this.mongomodels = mongomodels;
     this.tokenManager = managers.token;
     this.usersCollection = 'school';
-    this.httpExposed = ['post=createSchool'];
+    this.httpExposed = ['post=createSchool', 'get=listSchools'];
     this.cache = cache;
   }
 
@@ -63,6 +63,25 @@ module.exports = class School {
     return {
       ok: true,
       school: createdSchool,
+    };
+  }
+  async listSchools({ __longToken }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+    if (!requestingUser || requestingUser.role !== 'super_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Only a super_admin can list the schools.',
+      };
+    }
+
+    // Fetch and return all the schools
+    const schools = await this.mongomodels.school.find({});
+    return {
+      ok: true,
+      schools,
     };
   }
 };
