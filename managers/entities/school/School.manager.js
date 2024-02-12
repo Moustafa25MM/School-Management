@@ -16,7 +16,11 @@ module.exports = class School {
     this.mongomodels = mongomodels;
     this.tokenManager = managers.token;
     this.usersCollection = 'school';
-    this.httpExposed = ['post=createSchool', 'get=listSchools'];
+    this.httpExposed = [
+      'post=createSchool',
+      'get=listSchools',
+      'get=getSchoolById',
+    ];
     this.cache = cache;
   }
 
@@ -82,6 +86,30 @@ module.exports = class School {
     return {
       ok: true,
       schools,
+    };
+  }
+  async getSchoolById({ __longToken, schoolId }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+    if (!requestingUser || requestingUser.role !== 'super_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Only a super_admin can get the school',
+      };
+    }
+    const school = await this.mongomodels.school.findById(schoolId);
+    if (!school) {
+      return {
+        ok: false,
+        code: 404,
+        errors: 'School not found.',
+      };
+    }
+    return {
+      ok: true,
+      school,
     };
   }
 };
