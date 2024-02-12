@@ -26,7 +26,6 @@ module.exports = class Auth {
       password,
       role: 'super_admin',
     };
-    console.log(userInfo);
 
     let validationResult = await this.validators.auth.signUp(userInfo);
     if (validationResult) return validationResult;

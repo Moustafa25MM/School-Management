@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
+const DefaultAdmin = require('../managers/entities/auth/DefaultAdmin');
+
 module.exports = ({ uri }) => {
   //database connection
   mongoose.connect(uri, {
@@ -9,8 +11,10 @@ module.exports = ({ uri }) => {
   });
 
   // When successfully connected
-  mongoose.connection.on('connected', function () {
+  mongoose.connection.on('connected', async function () {
     console.log('💾  Mongoose default connection open to ' + uri);
+    const defaultAdmin = new DefaultAdmin();
+    await defaultAdmin.createDefaultAdmin();
   });
 
   // If the connection throws an error
