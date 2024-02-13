@@ -141,4 +141,35 @@ module.exports = class Classroom {
       classroom,
     };
   }
+  async deleteClassroom({ __longToken, classroomId }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+
+    if (!requestingUser || requestingUser.role !== 'school_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Unauthorized: Only a school_admin can delete a classroom.',
+      };
+    }
+
+    const classroom = await this.mongomodels.classroom.findOneAndDelete({
+      _id: classroomId,
+      school: requestingUser.school,
+    });
+
+    if (!classroom) {
+      return {
+        ok: false,
+        code: 404,
+        errors: 'Classroom not found or already deleted.',
+      };
+    }
+
+    return {
+      ok: true,
+      message: 'Classroom deleted successfully.',
+    };
+  }
 };
