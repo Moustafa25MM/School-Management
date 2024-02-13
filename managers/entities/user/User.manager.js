@@ -17,7 +17,11 @@ module.exports = class User {
     this.mongomodels = mongomodels;
     this.tokenManager = managers.token;
     this.usersCollection = 'user';
-    this.httpExposed = ['post=createUser', 'patch=updateStudent'];
+    this.httpExposed = [
+      'post=createUser',
+      'patch=updateStudent',
+      'get=listStudents',
+    ];
   }
 
   async createUser({
@@ -265,6 +269,37 @@ module.exports = class User {
     return {
       ok: true,
       message: 'Student updated successfully.',
+    };
+  }
+  async listStudents({ __longToken }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+
+    if (requestingUser.role !== 'school_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Only School Admins can list students.',
+      };
+    }
+
+    // Find all classrooms that belong to the school admin's school
+    const classrooms = await this.mongomodels.classroom.find({
+      school: requestingUser.school,
+    });
+
+    const classroomIds = classrooms.map((classroom) => classroom._id);
+
+    // Find all students that are in these classrooms
+    const students = await this.mongomodels.user.find({
+      classroom: { $in: classroomIds },
+      role: 'student',
+    });
+
+    return {
+      ok: true,
+      students,
     };
   }
 };
