@@ -6,6 +6,7 @@ const classroomSchema = new Schema(
     name: {
       type: String,
       required: true,
+      unique: true,
     },
     school: {
       type: Schema.Types.ObjectId,

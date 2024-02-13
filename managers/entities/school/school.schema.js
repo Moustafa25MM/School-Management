@@ -26,19 +26,19 @@ module.exports = {
     {
       label: 'Name',
       model: 'name',
-      type: 'string',
+      type: 'String',
       required: false,
     },
     {
       label: 'Address',
       model: 'address',
-      type: 'string',
+      type: 'String',
       required: false,
     },
     {
       label: 'Administrator',
       model: 'administrator',
-      type: 'string',
+      type: 'ObjectId',
       required: false,
     },
   ],
