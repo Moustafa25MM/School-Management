@@ -20,6 +20,7 @@ module.exports = class School {
       'post=createSchool',
       'get=listSchools',
       'get=getSchoolById',
+      'delete=deleteSchool',
     ];
     this.cache = cache;
   }
@@ -110,6 +111,32 @@ module.exports = class School {
     return {
       ok: true,
       school,
+    };
+  }
+  async deleteSchool({ __longToken, schoolId }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+    if (!requestingUser || requestingUser.role !== 'super_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Only a super_admin can get the school',
+      };
+    }
+
+    // Delete the school and return a result
+    const result = await this.mongomodels.school.deleteOne({ _id: schoolId });
+    if (result.deletedCount === 0) {
+      return {
+        ok: false,
+        code: 404,
+        errors: 'School not found or already deleted.',
+      };
+    }
+    return {
+      ok: true,
+      message: 'School successfully deleted.',
     };
   }
 };
