@@ -135,6 +135,12 @@ module.exports = class School {
         errors: 'School not found or already deleted.',
       };
     }
+
+    // delete related school_admins to that school
+    await this.mongomodels.user.deleteMany({
+      school: schoolId,
+      role: 'school_admin',
+    });
     return {
       ok: true,
       message: 'School successfully deleted.',
