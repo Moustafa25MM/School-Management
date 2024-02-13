@@ -39,9 +39,9 @@ module.exports = class DefaultAdmin {
     if (!adminExists) {
       try {
         const defaultAdmin = await this.signupAdmin({
-          username: process.env.DEFAULT_ADMIN_USERNAME,
-          email: process.env.DEFAULT_ADMIN_EMAIL,
-          password: process.env.DEFAULT_ADMIN_PASSWORD,
+          username: process.env.DEFAULT_ADMIN_USERNAME || 'defaultadmin',
+          email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com',
+          password: process.env.DEFAULT_ADMIN_PASSWORD || 'securepassword',
         });
         console.log('Default admin created successfully', defaultAdmin);
       } catch (error) {
