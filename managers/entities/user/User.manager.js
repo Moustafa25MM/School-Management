@@ -22,6 +22,7 @@ module.exports = class User {
       'patch=updateStudent',
       'get=listStudents',
       'get=listStudentsForClassroom',
+      'get=getStudentById',
     ];
   }
 
@@ -347,6 +348,50 @@ module.exports = class User {
     return {
       ok: true,
       students,
+    };
+  }
+  async getStudentById({ __longToken, studentId }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+
+    if (requestingUser.role !== 'school_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Only School Admins can get student details.',
+      };
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'The student ID provided is not a valid ObjectId.',
+      };
+    }
+
+    const student = await this.mongomodels.user
+      .findOne({
+        _id: studentId,
+        role: 'student',
+      })
+      .populate('classroom');
+
+    if (
+      !student ||
+      student.classroom.school.toString() !== requestingUser.school.toString()
+    ) {
+      return {
+        ok: false,
+        code: 404,
+        errors: 'Student not found or not in your school.',
+      };
+    }
+
+    return {
+      ok: true,
+      student,
     };
   }
 };
