@@ -103,6 +103,14 @@ module.exports = class School {
         errors: 'Only a super_admin can get the school',
       };
     }
+
+    if (!schoolId) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'Enter a Valid schoolId',
+      };
+    }
     const school = await this.mongomodels.school.findById(schoolId);
     if (!school) {
       return {
@@ -127,7 +135,13 @@ module.exports = class School {
         errors: 'Only a super_admin can get the school',
       };
     }
-
+    if (!schoolId) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'Enter a Valid schoolId',
+      };
+    }
     // Delete the school and return a result
     const result = await this.mongomodels.school.deleteOne({ _id: schoolId });
     if (result.deletedCount === 0) {
@@ -159,6 +173,13 @@ module.exports = class School {
         errors: 'Only a super_admin can get the school',
       };
     }
+    if (!schoolId) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'Enter a Valid schoolId',
+      };
+    }
 
     // Fetch and return all the admins for the specified school
     const admins = await this.mongomodels.user.find({
@@ -179,6 +200,13 @@ module.exports = class School {
         ok: false,
         code: 403,
         errors: 'Only a super_admin can update the school',
+      };
+    }
+    if (!schoolId) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'Enter a Valid schoolId',
       };
     }
     if (administrator) {
