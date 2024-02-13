@@ -23,6 +23,7 @@ module.exports = class User {
       'get=listStudents',
       'get=listStudentsForClassroom',
       'get=getStudentById',
+      'delete=deleteStudent',
     ];
   }
 
@@ -392,6 +393,62 @@ module.exports = class User {
     return {
       ok: true,
       student,
+    };
+  }
+
+  async deleteStudent({ __longToken, studentId }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+
+    if (requestingUser.role !== 'school_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Only School Admins can delete students.',
+      };
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'The student ID provided is not a valid ObjectId.',
+      };
+    }
+
+    // Find the student and populate the classroom
+    const student = await this.mongomodels.user
+      .findOne({
+        _id: studentId,
+        role: 'student',
+      })
+      .populate('classroom');
+
+    // Check if student exists and if they belong to the admin's school
+    if (
+      !student ||
+      student.classroom.school.toString() !== requestingUser.school.toString()
+    ) {
+      return {
+        ok: false,
+        code: 404,
+        errors: 'Student not found or not in your school.',
+      };
+    }
+
+    // Remove reference from the classroom
+    await this.mongomodels.classroom.updateOne(
+      { _id: student.classroom._id },
+      { $pull: { students: student._id } }
+    );
+
+    // Delete the student
+    await this.mongomodels.user.deleteOne({ _id: studentId });
+
+    return {
+      ok: true,
+      message: 'Student deleted successfully.',
     };
   }
 };
