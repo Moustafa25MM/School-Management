@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
 
 module.exports = class User {
   constructor({
@@ -20,15 +21,19 @@ module.exports = class User {
   }
 
   async createUser({
-    creatorRole,
+    __longToken,
     username,
     email,
     password,
     role,
     school,
-    classroom,
+    classroomId,
   }) {
-    if (creatorRole === 'student') {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+
+    if (!requestingUser) {
       return {
         ok: false,
         code: 403,
@@ -36,23 +41,31 @@ module.exports = class User {
       };
     }
 
-    if (creatorRole === 'school_admin' && role !== 'student') {
+    if (requestingUser.role === 'student') {
       return {
         ok: false,
         code: 403,
-        errors: 'School admins can only create Students.',
+        errors: 'Students cannot create users.',
+      };
+    }
+
+    if (requestingUser.role === 'school_admin' && role !== 'student') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'School admins can only create students.',
       };
     }
 
     if (
-      (creatorRole === 'super_admin' && role !== 'school_admin') ||
-      (creatorRole === 'super_admin' && role !== 'super_admin')
+      requestingUser.role === 'super_admin' &&
+      role !== 'school_admin' &&
+      role !== 'super_admin'
     ) {
       return {
         ok: false,
         code: 403,
-        errors:
-          'Super admins can only create school admins or other super admins.',
+        errors: 'Super admins can only create school admins or super admins.',
       };
     }
 
@@ -78,18 +91,23 @@ module.exports = class User {
     }
 
     if (role === 'student') {
-      if (!classroom) {
+      if (!classroomId) {
         return {
           ok: false,
           code: 400,
           errors: 'Missing classroom ID for student creation.',
         };
+      } else if (!mongoose.Types.ObjectId.isValid(classroomId)) {
+        return {
+          ok: false,
+          code: 400,
+          errors: 'The classroom ID provided is not a valid ObjectId.',
+        };
       } else {
-        // Check if the classroom exists
-        // const classroomExists = await this.mongomodels.classroom.findById(
-        //   classroom
-        // );
-        if (!classroom) {
+        const classroomExists = await this.mongomodels.classroom.findById(
+          classroomId
+        );
+        if (!classroomExists) {
           return {
             ok: false,
             code: 404,
@@ -135,7 +153,7 @@ module.exports = class User {
       password,
       role,
       school,
-      classroom,
+      classroomId,
     });
     if (result) return result;
 
@@ -152,7 +170,7 @@ module.exports = class User {
     }
 
     if (role === 'student') {
-      userData.classroom = classroom;
+      userData.classroom = classroomId;
     }
 
     // Creation Logic
