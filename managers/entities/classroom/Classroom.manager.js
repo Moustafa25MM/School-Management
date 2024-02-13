@@ -14,7 +14,7 @@ module.exports = class Classroom {
     this.mongomodels = mongomodels;
     this.tokenManager = managers.token;
     this.usersCollection = 'classroom';
-    this.httpExposed = ['post=createClassroom'];
+    this.httpExposed = ['post=createClassroom', 'get=listClassrooms'];
     this.cache = cache;
   }
 
@@ -76,5 +76,27 @@ module.exports = class Classroom {
         errors: 'Internal server error.',
       };
     }
+  }
+  async listClassrooms({ __longToken }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+
+    if (!requestingUser || requestingUser.role !== 'school_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Unauthorized: Only a school_admin can list classrooms.',
+      };
+    }
+
+    const classrooms = await this.mongomodels.classroom.find({
+      school: requestingUser.school,
+    });
+
+    return {
+      ok: true,
+      classrooms,
+    };
   }
 };
