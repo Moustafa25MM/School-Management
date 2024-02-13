@@ -17,7 +17,7 @@ module.exports = class User {
     this.mongomodels = mongomodels;
     this.tokenManager = managers.token;
     this.usersCollection = 'user';
-    this.httpExposed = ['post=createUser'];
+    this.httpExposed = ['post=createUser', 'patch=updateStudent'];
   }
 
   async createUser({
@@ -178,6 +178,89 @@ module.exports = class User {
 
     return {
       user: createdUser,
+    };
+  }
+
+  async updateStudent({ __longToken, studentId, username, email, password }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+
+    if (!requestingUser.role === 'school_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Only School Admins can update users.',
+      };
+    }
+
+    if (!studentId) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'Please Provide a studentId.',
+      };
+    }
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'The student ID provided is not a valid ObjectId.',
+      };
+    }
+
+    const student = await this.mongomodels.user.findOne({
+      _id: studentId,
+      role: 'student',
+    });
+
+    if (!student) {
+      return {
+        ok: false,
+        code: 404,
+        errors: 'Student not found.',
+      };
+    }
+    const classroom = await this.mongomodels.classroom.findById(
+      student.classroom
+    );
+    if (
+      !classroom ||
+      classroom.school.toString() !== requestingUser.school.toString()
+    ) {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'This Student is not in your school.',
+      };
+    }
+
+    if (!username && !email && !password) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'Please provide a Data to Update.',
+      };
+    }
+    let updateData = {};
+    if (username) {
+      updateData.username = username;
+    }
+    if (email) {
+      updateData.email = email;
+    }
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
+    }
+
+    await this.mongomodels.user.updateOne(
+      { _id: studentId },
+      { $set: updateData }
+    );
+    return {
+      ok: true,
+      message: 'Student updated successfully.',
     };
   }
 };
