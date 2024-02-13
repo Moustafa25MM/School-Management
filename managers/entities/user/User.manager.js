@@ -175,7 +175,11 @@ module.exports = class User {
 
     // Creation Logic
     const createdUser = await this.mongomodels.user.create(userData);
-
+    if (role === 'student') {
+      await this.mongomodels.classroom.findByIdAndUpdate(classroomId, {
+        $push: { students: createdUser._id },
+      });
+    }
     return {
       user: createdUser,
     };
