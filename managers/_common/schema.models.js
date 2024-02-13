@@ -118,4 +118,19 @@ module.exports = {
     type: 'string',
     length: { min: 1, max: 50 },
   },
+  classroomName: {
+    path: 'classroomName',
+    type: 'string',
+    length: { min: 1, max: 50 },
+  },
+  school: {
+    path: 'school',
+    type: 'string',
+    length: { min: 1, max: 50 },
+  },
+  student: {
+    path: 'school',
+    type: 'string',
+    length: { min: 1, max: 50 },
+  },
 };

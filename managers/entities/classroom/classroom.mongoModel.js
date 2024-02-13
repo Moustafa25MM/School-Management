@@ -3,10 +3,9 @@ const Schema = mongoose.Schema;
 
 const classroomSchema = new Schema(
   {
-    name: {
+    classroomName: {
       type: String,
       required: true,
-      unique: true,
     },
     school: {
       type: Schema.Types.ObjectId,
@@ -25,4 +24,5 @@ const classroomSchema = new Schema(
   }
 );
 
+classroomSchema.index({ classroomName: 1, school: 1 }, { unique: true });
 module.exports = mongoose.model('Classroom', classroomSchema);

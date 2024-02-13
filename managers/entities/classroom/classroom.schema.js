@@ -1,11 +1,10 @@
 module.exports = {
   createClassroom: [
     {
-      label: 'Name',
-      model: 'name',
+      label: 'ClassroomName',
+      model: 'classroomName',
       type: 'String',
       required: true,
-      unique: true,
     },
     {
       label: 'School',
