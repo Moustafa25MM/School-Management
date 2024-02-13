@@ -22,6 +22,7 @@ module.exports = class School {
       'get=getSchoolById',
       'delete=deleteSchool',
       'get=listSchoolAdmins',
+      'patch=updateSchool',
     ];
     this.cache = cache;
   }
@@ -51,12 +52,13 @@ module.exports = class School {
 
     const schoolInfo = { name, address, administrator };
 
-    console.log(schoolInfo);
     let result = await this.validators.school.createSchool(schoolInfo);
     if (result) return result;
 
-    const school = await this.mongomodels.school.findOne({ name: name });
-    if (school) {
+    const existingSchool = await this.mongomodels.school.findOne({
+      name: name,
+    });
+    if (existingSchool) {
       return {
         ok: false,
         code: 409,
@@ -166,6 +168,63 @@ module.exports = class School {
     return {
       ok: true,
       admins,
+    };
+  }
+  async updateSchool({ __longToken, schoolId, name, address, administrator }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+    if (!requestingUser || requestingUser.role !== 'super_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Only a super_admin can update the school',
+      };
+    }
+    if (administrator) {
+      const schoolAdmin = await this.mongomodels.user.findById(administrator);
+      if (!schoolAdmin || schoolAdmin.role !== 'school_admin') {
+        return {
+          ok: false,
+          code: 400,
+          errors: 'Invalid administrator ID or the user is not a school admin.',
+        };
+      }
+    }
+
+    if (!name && !address && !administrator) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'You did not provide any data to update!',
+      };
+    }
+    const schoolInfo = { name, address, administrator };
+
+    let result = await this.validators.school.updateSchool(schoolInfo);
+    if (result) return result;
+
+    const existingSchool = await this.mongomodels.school.findOne({
+      name: name,
+    });
+    if (existingSchool) {
+      return {
+        ok: false,
+        code: 409,
+        errors: 'School with this name or address already exists.',
+      };
+    }
+
+    let school = await this.mongomodels.school.findOneAndUpdate(
+      { _id: schoolId },
+      schoolInfo,
+      { new: true }
+    );
+
+    return {
+      ok: true,
+      message: 'School Updated Successfully',
+      school,
     };
   }
 };
