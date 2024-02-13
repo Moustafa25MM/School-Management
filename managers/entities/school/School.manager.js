@@ -21,6 +21,7 @@ module.exports = class School {
       'get=listSchools',
       'get=getSchoolById',
       'delete=deleteSchool',
+      'get=listSchoolAdmins',
     ];
     this.cache = cache;
   }
@@ -137,6 +138,28 @@ module.exports = class School {
     return {
       ok: true,
       message: 'School successfully deleted.',
+    };
+  }
+  async listSchoolAdmins({ __longToken, schoolId }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+    if (!requestingUser || requestingUser.role !== 'super_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Only a super_admin can get the school',
+      };
+    }
+
+    // Fetch and return all the admins for the specified school
+    const admins = await this.mongomodels.user.find({
+      school: schoolId,
+      role: 'school_admin',
+    });
+    return {
+      ok: true,
+      admins,
     };
   }
 };
