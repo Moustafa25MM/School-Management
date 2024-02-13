@@ -21,6 +21,7 @@ module.exports = class User {
       'post=createUser',
       'patch=updateStudent',
       'get=listStudents',
+      'get=listStudentsForClassroom',
     ];
   }
 
@@ -294,6 +295,52 @@ module.exports = class User {
     // Find all students that are in these classrooms
     const students = await this.mongomodels.user.find({
       classroom: { $in: classroomIds },
+      role: 'student',
+    });
+
+    return {
+      ok: true,
+      students,
+    };
+  }
+  async listStudentsForClassroom({ __longToken, classroomId }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+
+    if (requestingUser.role !== 'school_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Only School Admins can list students of a classroom.',
+      };
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(classroomId)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'The classroom ID provided is not a valid ObjectId.',
+      };
+    }
+
+    // Ensure the classroom is part of the school admin's school
+    const classroom = await this.mongomodels.classroom.findOne({
+      _id: classroomId,
+      school: requestingUser.school,
+    });
+
+    if (!classroom) {
+      return {
+        ok: false,
+        code: 404,
+        errors: 'Classroom not found or not part of your school.',
+      };
+    }
+
+    // Find students in the classroom
+    const students = await this.mongomodels.user.find({
+      classroom: classroomId,
       role: 'student',
     });
 
