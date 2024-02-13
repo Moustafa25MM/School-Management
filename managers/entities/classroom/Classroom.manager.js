@@ -14,7 +14,11 @@ module.exports = class Classroom {
     this.mongomodels = mongomodels;
     this.tokenManager = managers.token;
     this.usersCollection = 'classroom';
-    this.httpExposed = ['post=createClassroom', 'get=listClassrooms'];
+    this.httpExposed = [
+      'post=createClassroom',
+      'get=listClassrooms',
+      'get=getClassroomById',
+    ];
     this.cache = cache;
   }
 
@@ -97,6 +101,44 @@ module.exports = class Classroom {
     return {
       ok: true,
       classrooms,
+    };
+  }
+  async getClassroomById({ __longToken, classroomId }) {
+    const requestingUser = await this.mongomodels.user.findById(
+      __longToken.userId
+    );
+
+    if (!requestingUser || requestingUser.role !== 'school_admin') {
+      return {
+        ok: false,
+        code: 403,
+        errors: 'Unauthorized: Only a school_admin can get classroom details.',
+      };
+    }
+    if (!classroomId) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'provide a classroomId Please!.',
+      };
+    }
+
+    const classroom = await this.mongomodels.classroom.findOne({
+      _id: classroomId,
+      school: requestingUser.school,
+    });
+
+    if (!classroom) {
+      return {
+        ok: false,
+        code: 404,
+        errors: 'Classroom not found.',
+      };
+    }
+
+    return {
+      ok: true,
+      classroom,
     };
   }
 };
