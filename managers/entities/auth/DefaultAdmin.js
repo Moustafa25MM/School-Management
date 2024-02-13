@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const User = require('../user/user.mongoModel');
+require('dotenv').config();
 
 module.exports = class DefaultAdmin {
   constructor() {
@@ -38,9 +39,9 @@ module.exports = class DefaultAdmin {
     if (!adminExists) {
       try {
         const defaultAdmin = await this.signupAdmin({
-          username: 'defaultadmin',
-          email: 'admin@example.com',
-          password: 'securepassword',
+          username: process.env.DEFAULT_ADMIN_USERNAME,
+          email: process.env.DEFAULT_ADMIN_EMAIL,
+          password: process.env.DEFAULT_ADMIN_PASSWORD,
         });
         console.log('Default admin created successfully', defaultAdmin);
       } catch (error) {
