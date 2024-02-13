@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
 
 module.exports = class School {
   constructor({
@@ -103,7 +104,6 @@ module.exports = class School {
         errors: 'Only a super_admin can get the school',
       };
     }
-
     if (!schoolId) {
       return {
         ok: false,
@@ -111,6 +111,15 @@ module.exports = class School {
         errors: 'Enter a Valid schoolId',
       };
     }
+
+    if (!mongoose.Types.ObjectId.isValid(schoolId)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'The School ID provided is not a valid ObjectId.',
+      };
+    }
+
     const school = await this.mongomodels.school.findById(schoolId);
     if (!school) {
       return {
@@ -140,6 +149,13 @@ module.exports = class School {
         ok: false,
         code: 400,
         errors: 'Enter a Valid schoolId',
+      };
+    }
+    if (!mongoose.Types.ObjectId.isValid(schoolId)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'The School ID provided is not a valid ObjectId.',
       };
     }
     // Delete the school and return a result
@@ -207,6 +223,13 @@ module.exports = class School {
         ok: false,
         code: 400,
         errors: 'Enter a Valid schoolId',
+      };
+    }
+    if (!mongoose.Types.ObjectId.isValid(schoolId)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'The School ID provided is not a valid ObjectId.',
       };
     }
     if (administrator) {

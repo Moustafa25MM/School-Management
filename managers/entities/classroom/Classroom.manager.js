@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 module.exports = class Classroom {
   constructor({
     utils,
@@ -124,6 +126,13 @@ module.exports = class Classroom {
         errors: 'provide a classroomId Please!.',
       };
     }
+    if (!mongoose.Types.ObjectId.isValid(classroomId)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'The classroom ID provided is not a valid ObjectId.',
+      };
+    }
 
     const classroom = await this.mongomodels.classroom.findOne({
       _id: classroomId,
@@ -161,6 +170,13 @@ module.exports = class Classroom {
         ok: false,
         code: 400,
         errors: 'Please Provide classroomId.',
+      };
+    }
+    if (!mongoose.Types.ObjectId.isValid(classroomId)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'The classroom ID provided is not a valid ObjectId.',
       };
     }
 
@@ -202,6 +218,14 @@ module.exports = class Classroom {
         errors: 'Please Provide classroomId.',
       };
     }
+    if (!mongoose.Types.ObjectId.isValid(classroomId)) {
+      return {
+        ok: false,
+        code: 400,
+        errors: 'The classroom ID provided is not a valid ObjectId.',
+      };
+    }
+
     if (!classroomName && !students) {
       return {
         ok: false,
